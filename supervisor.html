@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RTV Inventory Hub | Supervisor Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --sidebar-width: 260px;
+            --header-height: 70px;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--dark);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto;
+            transition: var(--transition);
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .sidebar-logo {
+            height: 40px;
+            width: 40px;
+            object-fit: contain;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .sidebar-menu {
+            padding: 1rem 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: var(--transition);
+            gap: 0.75rem;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 1.5rem;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .header-title h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .header-title p {
+            color: var(--secondary);
+            font-size: 0.9rem;
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: var(--secondary);
+            font-weight: 500;
+        }
+
+        /* Table Styles */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .inventory-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .inventory-table thead th {
+            text-align: left;
+            padding: 1.25rem;
+            background: var(--light);
+            color: var(--secondary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .inventory-table tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background-color 0.2s ease;
+        }
+
+        .inventory-table tbody tr:last-child {
+            border-bottom: none;
+        }
+        
+        .inventory-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+        
+        .inventory-table td {
+            padding: 1rem 1.25rem;
+            vertical-align: middle;
+            font-size: 0.9rem;
+            color: #475569;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.35em 0.65em;
+            font-size: 0.75em;
+            font-weight: 600;
+            line-height: 1;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: baseline;
+            border-radius: 0.375rem;
+        }
+        
+        .status-available { color: #065f46; background-color: #d1fae5; }
+        .status-in-use { color: #1e40af; background-color: #dbeafe; }
+        .status-maintenance { color: #92400e; background-color: #fef3c7; }
+        .status-retired { color: #991b1b; background-color: #fee2e2; }
+        .status-pending-transfer { color: #9a3412; background-color: #ffedd5; }
+        .status-in-storage-field { color: #5b21b6; background-color: #ede9fe; }
+        .status-reported-missing { color: #721c24; background-color: #f8d7da; }
+
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .action-buttons .btn {
+            font-size: 0.8rem;
+            padding: 0.5rem 0.8rem;
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #0da271; }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-warning:hover { background: #d97706; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #c53030; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--secondary); }
+        .btn-outline:hover { background: var(--light); }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+        
+        .modal-content h3 { margin-bottom: 1.5rem; color: var(--dark); }
+        .modal-close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; position: absolute; top: 1rem; right: 1.5rem; }
+        .modal-close:hover, .modal-close:focus { color: #000; text-decoration: none; cursor: pointer; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--dark); }
+        .form-control { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; }
+        .form-control:focus { outline: none; border-color: var(--primary); }
+        .modal-footer { margin-top: 1.5rem; text-align: right; }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #333;
+            color: white;
+            padding: 15px 25px;
+            border-radius: var(--border-radius);
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+            font-size: 0.9rem;
+        }
+        
+        .notification.show { opacity: 1; visibility: visible; }
+        
+        /* Supervisor Selector */
+        .supervisor-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .supervisor-selector label {
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        .supervisor-selector select {
+            padding: 0.5rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: white;
+        }
+        
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .quick-action-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 120px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .quick-action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+        
+        .quick-action-btn i {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        .quick-action-btn.danger i {
+            color: var(--danger);
+        }
+        
+        .quick-action-btn span {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        /* Transfer History */
+        .transfer-history {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+        
+        .transfer-history h3 {
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+        
+        .transfer-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .transfer-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .transfer-item:last-child {
+            border-bottom: none;
+        }
+        
+        .transfer-info {
+            flex: 1;
+        }
+        
+        .transfer-item .item-id {
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .transfer-item .transfer-details {
+            font-size: 0.85rem;
+            color: var(--secondary);
+        }
+        
+        .transfer-date {
+            font-size: 0.8rem;
+            color: var(--secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="logo.png" alt="RTV Inventory Hub Logo" class="sidebar-logo">
+                <h2>RTV Inventory Hub</h2>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="index.html" class="menu-item">
+                    <i class="fas fa-home"></i>
+                    <span class="menu-text">Dashboard</span>
+                </a>
+                <a href="Inventory.html" class="menu-item">
+                    <i class="fas fa-list"></i>
+                    <span class="menu-text">Inventory</span>
+                </a>
+                <a href="supervisor.html" class="menu-item active">
+                    <i class="fas fa-user-shield"></i>
+                    <span class="menu-text">Supervisor</span>
+                </a>
+                <a href="field_office.html" class="menu-item">
+                    <i class="fas fa-warehouse"></i>
+                    <span class="menu-text">Field Office</span>
+                </a>
+                <a href="transfers.html" class="menu-item">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span class="menu-text">Transfers</span>
+                </a>
+                <a href="reports.html" class="menu-item">
+                    <i class="fas fa-chart-bar"></i>
+                    <span class="menu-text">Reports</span>
+                </a>
+                <a href="settings.html" class="menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span class="menu-text">Settings</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-title">
+                    <h1>Supervisor Dashboard (<span id="district-name"></span>)</h1>
+                    <p>Manage equipment for your assigned district</p>
+                </div>
+                <div class="user-profile">
+                    <div class="avatar" id="supervisor-avatar">S</div>
+                    <div>
+                        <div id="supervisor-name">John Smith</div>
+                        <small>Supervisor</small>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="supervisor-selector">
+                <label for="supervisor-select">Select Supervisor:</label>
+                <select id="supervisor-select">
+                    <option value="">-- Select Supervisor --</option>
+                </select>
+            </div>
+            
+            <div class="quick-actions">
+                <div class="quick-action-btn" id="quick-assign">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Quick Assign</span>
+                </div>
+                <div class="quick-action-btn" id="quick-return">
+                    <i class="fas fa-undo"></i>
+                    <span>Return to Field Office</span>
+                </div>
+                <div class="quick-action-btn" id="quick-transfer">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Transfer Items</span>
+                </div>
+                <div class="quick-action-btn" id="quick-maintenance">
+                    <i class="fas fa-tools"></i>
+                    <span>Mark Maintenance</span>
+                </div>
+                 <div class="quick-action-btn danger" id="quick-incident">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Report Incident</span>
+                </div>
+            </div>
+            
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="stat-value" id="total-district-items">0</div>
+                        <div class="stat-label">Total Items in District</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="stat-value" id="available-district-items">0</div>
+                        <div class="stat-label">Items Available for Assignment</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="stat-value" id="in-use-district-items">0</div>
+                        <div class="stat-label">Items Assigned to Collectors</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="stat-value" id="pending-items">0</div>
+                        <div class="stat-label">Items Pending Acknowledgement</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Assigned To (Data Collector)</th>
+                            <th>Last Update</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-table-body">
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="transfer-history">
+                <h3>Recent Transfers & Actions</h3>
+                <div class="transfer-list" id="transfer-list">
+                    </div>
+            </div>
+            
+        </main>
+    </div>
+
+    <div id="assign-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h3 id="assign-modal-title">Assign Item</h3>
+            <p>Assign <strong id="assign-item-name"></strong> to a Data Collector.</p>
+            <form id="assign-form">
+                <input type="hidden" id="assign-item-id">
+                <div class="form-group">
+                    <label for="collector-name">Data Collector Name</label>
+                    <input type="text" class="form-control" id="collector-name" required placeholder="Enter full name">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline modal-close">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Confirm Assignment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+     <div id="incident-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h3>Report an Incident</h3>
+            <form id="incident-form">
+                <div class="form-group">
+                    <label for="incident-item-select">Select Item *</label>
+                    <select id="incident-item-select" class="form-control" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="incident-type">Incident Type *</label>
+                    <select id="incident-type" class="form-control" required>
+                        <option value="">-- Select Type --</option>
+                        <option value="Lost">Lost</option>
+                        <option value="Stolen">Stolen</option>
+                        <option value="Damaged Beyond Repair">Damaged Beyond Repair</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="incident-date">Date of Incident *</label>
+                    <input type="date" class="form-control" id="incident-date" required>
+                </div>
+                <div class="form-group">
+                    <label for="incident-details">Incident Details *</label>
+                    <textarea id="incident-details" class="form-control" rows="4" required placeholder="Provide a detailed description of what happened."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="incident-attachment">Attach Police Report (if applicable)</label>
+                    <input type="file" class="form-control" id="incident-attachment">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline modal-close">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Submit Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="bulk-action-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h3 id="bulk-modal-title">Bulk Action</h3>
+            <div id="bulk-modal-content">
+                </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline modal-close">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirm-bulk-action">Confirm</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="notification-toast" class="notification"></div>
+
+    <script>
+        // Current supervisor data
+        let currentSupervisor = null;
+        
+        // Keys for localStorage
+        const SUPERVISORS_KEY = 'supervisors';
+        const INVENTORY_KEY = 'inventoryData';
+        const MOVEMENT_LOGS_KEY = 'movementLogs';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeSupervisorDashboard();
+        });
+        
+        window.addEventListener('storage', (e) => {
+            if (e.key === INVENTORY_KEY || e.key === SUPERVISORS_KEY || e.key === MOVEMENT_LOGS_KEY) {
+                loadSupervisorData();
+                updateTransferHistory();
+            }
+        });
+
+        function initializeSupervisorDashboard() {
+            loadSupervisorsDropdown();
+            setupEventListeners();
+            
+            // Try to load the last selected supervisor
+            const lastSupervisorId = localStorage.getItem('lastSelectedSupervisor');
+            if (lastSupervisorId) {
+                document.getElementById('supervisor-select').value = lastSupervisorId;
+                setCurrentSupervisor(lastSupervisorId);
+            }
+        }
+        
+        function getSupervisors() {
+            return JSON.parse(localStorage.getItem(SUPERVISORS_KEY)) || [];
+        }
+        
+        function getInventoryData() {
+            return JSON.parse(localStorage.getItem(INVENTORY_KEY)) || [];
+        }
+        
+        function saveInventoryData(inventory) {
+            localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
+            window.dispatchEvent(new Event('storage'));
+        }
+        
+        function logMovement(itemId, action, details) {
+            let movementLogs = JSON.parse(localStorage.getItem(MOVEMENT_LOGS_KEY)) || [];
+            movementLogs.unshift({
+                itemId,
+                action,
+                details: `${details} (Action by Supervisor: ${currentSupervisor.name})`,
+                timestamp: new Date().toISOString()
+            });
+            localStorage.setItem(MOVEMENT_LOGS_KEY, JSON.stringify(movementLogs));
+        }
+
+        function loadSupervisorsDropdown() {
+            const supervisors = getSupervisors();
+            const dropdown = document.getElementById('supervisor-select');
+            
+            dropdown.innerHTML = '<option value="">-- Select Supervisor --</option>';
+            
+            supervisors.forEach(supervisor => {
+                if (supervisor.status === 'active') {
+                    const option = document.createElement('option');
+                    option.value = supervisor.id;
+                    option.textContent = `${supervisor.name} (${supervisor.district})`;
+                    dropdown.appendChild(option);
+                }
+            });
+        }
+        
+        function setCurrentSupervisor(supervisorId) {
+            if (!supervisorId) {
+                currentSupervisor = null;
+                return;
+            }
+            const supervisors = getSupervisors();
+            currentSupervisor = supervisors.find(s => s.id == supervisorId);
+            
+            if (currentSupervisor) {
+                localStorage.setItem('lastSelectedSupervisor', supervisorId);
+                document.getElementById('supervisor-name').textContent = currentSupervisor.name;
+                document.getElementById('supervisor-avatar').textContent = currentSupervisor.name.charAt(0).toUpperCase();
+                document.getElementById('district-name').textContent = currentSupervisor.district.charAt(0).toUpperCase() + currentSupervisor.district.slice(1);
+                
+                loadSupervisorData();
+                updateTransferHistory();
+            }
+        }
+        
+        function loadSupervisorData() {
+            if (!currentSupervisor) return;
+            
+            const allInventory = getInventoryData();
+            const districtInventory = allInventory.filter(item => item.district && item.district.toLowerCase() === currentSupervisor.district.toLowerCase());
+            
+            updateStats(districtInventory);
+            renderTable(districtInventory);
+        }
+
+        function updateStats(districtInventory) {
+            document.getElementById('total-district-items').textContent = districtInventory.length;
+            document.getElementById('available-district-items').textContent = districtInventory.filter(item => item.status === 'available').length;
+            document.getElementById('in-use-district-items').textContent = districtInventory.filter(item => item.status === 'in-use').length;
+            document.getElementById('pending-items').textContent = districtInventory.filter(item => item.status === 'pending-transfer').length;
+        }
+
+        function renderTable(items) {
+            const tableBody = document.getElementById('inventory-table-body');
+            tableBody.innerHTML = '';
+
+            if (items.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem;">No items found in this district.</td></tr>';
+                return;
+            }
+
+            // Sort by status to bring pending items to the top
+            items.sort((a, b) => {
+                if (a.status === 'pending-transfer') return -1;
+                if (b.status === 'pending-transfer') return 1;
+                return a.id.localeCompare(b.id);
+            });
+            
+            items.forEach(item => {
+                const row = document.createElement('tr');
+                let statusClass = `status-${item.status.replace(/_/g, '-')}`;
+
+                row.innerHTML = `
+                    <td>${item.id}</td>
+                    <td>${item.name}</td>
+                    <td>${item.type}</td>
+                    <td><span class="status-badge ${statusClass}">${item.status.replace(/-/g, ' ').toUpperCase()}</span></td>
+                    <td>${item.assigned || 'N/A'}</td>
+                    <td>${item.lastUpdate}</td>
+                    <td class="action-buttons">
+                        ${generateActionButtons(item)}
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        function generateActionButtons(item) {
+            let buttons = '';
+            switch(item.status) {
+                case 'pending-transfer':
+                    buttons = `<button class="btn btn-success btn-sm acknowledge-btn" data-item-id="${item.id}"><i class="fas fa-check-circle"></i> Acknowledge</button>`;
+                    break;
+                case 'available':
+                    buttons = `<button class="btn btn-primary btn-sm assign-btn" data-item-id="${item.id}"><i class="fas fa-user-plus"></i> Assign</button>
+                               <button class="btn btn-outline btn-sm return-btn" data-item-id="${item.id}"><i class="fas fa-undo"></i> Return to Field Office</button>`;
+                    break;
+                case 'in-use':
+                    buttons = `<button class="btn btn-primary btn-sm transfer-btn" data-item-id="${item.id}"><i class="fas fa-exchange-alt"></i> Transfer</button>
+                               <button class="btn btn-warning btn-sm maintenance-btn" data-item-id="${item.id}"><i class="fas fa-tools"></i> Mark for Maintenance</button>
+                               <button class="btn btn-outline btn-sm return-btn" data-item-id="${item.id}"><i class="fas fa-undo"></i> Return to Field Office</button>`;
+                    break;
+                case 'maintenance':
+                     buttons = `<button class="btn btn-success btn-sm activate-btn" data-item-id="${item.id}"><i class="fas fa-check"></i> Mark as Available</button>`;
+                     break;
+                case 'reported-missing':
+                    buttons = 'Awaiting Admin Review';
+                    break;
+                default:
+                    buttons = 'No actions available';
+            }
+            return buttons;
+        }
+        
+        function updateTransferHistory() {
+            if (!currentSupervisor) return;
+            
+            const transferList = document.getElementById('transfer-list');
+            const movementLogs = JSON.parse(localStorage.getItem(MOVEMENT_LOGS_KEY)) || [];
+            
+            const inventory = getInventoryData();
+            const districtLogs = movementLogs.filter(log => {
+                const item = inventory.find(i => i.id === log.itemId);
+                return item && item.district && item.district.toLowerCase() === currentSupervisor.district.toLowerCase();
+            }).slice(0, 5);
+            
+            transferList.innerHTML = '';
+            
+            if (districtLogs.length === 0) {
+                transferList.innerHTML = '<p style="text-align: center; color: var(--secondary);">No recent transfers</p>';
+                return;
+            }
+            
+            districtLogs.forEach(log => {
+                const transferItem = document.createElement('div');
+                transferItem.className = 'transfer-item';
+                
+                transferItem.innerHTML = `
+                    <div class="transfer-info">
+                        <div class="item-id">${log.itemId}</div>
+                        <div class="transfer-details">${log.details}</div>
+                    </div>
+                    <div class="transfer-date">${new Date(log.timestamp).toLocaleString()}</div>
+                `;
+                
+                transferList.appendChild(transferItem);
+            });
+        }
+
+        function setupEventListeners() {
+            document.getElementById('supervisor-select').addEventListener('change', (e) => {
+                setCurrentSupervisor(e.target.value);
+            });
+            
+            const tableBody = document.getElementById('inventory-table-body');
+            tableBody.addEventListener('click', e => {
+                const button = e.target.closest('button');
+                if (!button) return;
+
+                const itemId = button.dataset.itemId;
+                if (button.classList.contains('acknowledge-btn')) handleAcknowledge(itemId);
+                if (button.classList.contains('assign-btn')) openAssignModal(itemId, 'assign');
+                if (button.classList.contains('transfer-btn')) openAssignModal(itemId, 'transfer');
+                if (button.classList.contains('return-btn')) handleReturn(itemId);
+                if (button.classList.contains('maintenance-btn')) handleStatusChange(itemId, 'maintenance');
+                if (button.classList.contains('activate-btn')) handleStatusChange(itemId, 'available');
+            });
+
+            document.getElementById('quick-assign').addEventListener('click', () => openBulkActionModal('assign'));
+            document.getElementById('quick-return').addEventListener('click', () => openBulkActionModal('return'));
+            document.getElementById('quick-transfer').addEventListener('click', () => openBulkActionModal('transfer'));
+            document.getElementById('quick-maintenance').addEventListener('click', () => openBulkActionModal('maintenance'));
+            document.getElementById('quick-incident').addEventListener('click', openIncidentModal);
+
+
+            const assignModal = document.getElementById('assign-modal');
+            const assignForm = document.getElementById('assign-form');
+            const incidentForm = document.getElementById('incident-form');
+            
+            document.querySelectorAll('.modal-close').forEach(btn => {
+                btn.addEventListener('click', () => btn.closest('.modal').style.display = 'none');
+            });
+            
+            window.addEventListener('click', e => {
+                if(e.target.classList.contains('modal')) e.target.style.display = 'none';
+            });
+
+            assignForm.addEventListener('submit', e => {
+                e.preventDefault();
+                const itemId = document.getElementById('assign-item-id').value;
+                const collectorName = document.getElementById('collector-name').value.trim();
+                
+                if (collectorName) {
+                    let inventory = getInventoryData();
+                    const itemIndex = inventory.findIndex(i => i.id === itemId);
+                    
+                    if (itemIndex > -1) {
+                        const originalAssignee = inventory[itemIndex].assigned;
+                        inventory[itemIndex].status = 'in-use';
+                        inventory[itemIndex].assigned = collectorName;
+                        inventory[itemIndex].lastUpdate = new Date().toLocaleDateString();
+                        
+                        saveInventoryData(inventory);
+                        
+                        const actionType = originalAssignee ? 'transfer' : 'assignment';
+                        const logDetail = originalAssignee ? `Transferred from ${originalAssignee} to ${collectorName}` : `Assigned to ${collectorName}`;
+                        logMovement(itemId, actionType, logDetail);
+                        showNotification(`Item successfully assigned to ${collectorName}.`);
+
+                        assignModal.style.display = 'none';
+                        loadSupervisorData();
+                        updateTransferHistory();
+                    }
+                }
+            });
+            
+             incidentForm.addEventListener('submit', handleIncidentReport);
+
+            document.getElementById('confirm-bulk-action').addEventListener('click', handleBulkAction);
+        }
+        
+        function openBulkActionModal(actionType) {
+            if (!currentSupervisor) {
+                showNotification('Please select a supervisor first.');
+                return;
+            }
+            
+            const modal = document.getElementById('bulk-action-modal');
+            const modalTitle = document.getElementById('bulk-modal-title');
+            const modalContent = document.getElementById('bulk-modal-content');
+            
+            const inventory = getInventoryData();
+            const districtItems = inventory.filter(item => 
+                item.district && item.district.toLowerCase() === currentSupervisor.district.toLowerCase() && 
+                ((actionType === 'assign' && item.status === 'available') ||
+                 (actionType === 'return' && (item.status === 'available' || item.status === 'in-use')) ||
+                 (actionType === 'transfer' && item.status === 'in-use') ||
+                 (actionType === 'maintenance' && (item.status === 'available' || item.status === 'in-use')))
+            );
+            
+            if (districtItems.length === 0) {
+                showNotification(`No items available for ${actionType} action.`);
+                return;
+            }
+            
+            let title = '';
+            let contentHTML = '';
+            
+            switch(actionType) {
+                case 'assign':
+                    title = 'Bulk Assign Items';
+                    contentHTML = `
+                        <p>Select items to assign to a data collector:</p>
+                        <div class="form-group">
+                            <label for="bulk-collector-name">Data Collector Name</label>
+                            <input type="text" class="form-control" id="bulk-collector-name" required placeholder="Enter full name">
+                        </div>
+                        <div style="max-height: 200px; overflow-y: auto; margin-top: 1rem;">
+                            ${districtItems.map(item => `
+                                <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                                    <input type="checkbox" id="bulk-item-${item.id}" value="${item.id}" style="margin-right: 0.5rem;">
+                                    <label for="bulk-item-${item.id}">${item.name} (${item.id})</label>
+                                </div>
+                            `).join('')}
+                        </div>`;
+                    break;
+                case 'return':
+                    title = 'Bulk Return Items to Field Office';
+                    contentHTML = `
+                        <p>Select items to return to the Field Office for temporary storage:</p>
+                        <div style="max-height: 200px; overflow-y: auto; margin-top: 1rem;">
+                            ${districtItems.map(item => `
+                                <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                                    <input type="checkbox" id="bulk-item-${item.id}" value="${item.id}" style="margin-right: 0.5rem;">
+                                    <label for="bulk-item-${item.id}">${item.name} (${item.id})</label>
+                                </div>
+                            `).join('')}
+                        </div>`;
+                    break;
+                case 'transfer':
+                    title = 'Bulk Transfer Items';
+                    contentHTML = `
+                        <p>Select items to transfer to another data collector:</p>
+                        <div class="form-group">
+                            <label for="bulk-transfer-collector">New Data Collector Name</label>
+                            <input type="text" class="form-control" id="bulk-transfer-collector" required placeholder="Enter full name">
+                        </div>
+                        <div style="max-height: 200px; overflow-y: auto; margin-top: 1rem;">
+                            ${districtItems.map(item => `
+                                <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                                    <input type="checkbox" id="bulk-item-${item.id}" value="${item.id}" style="margin-right: 0.5rem;">
+                                    <label for="bulk-item-${item.id}">${item.name} (${item.id}) - Currently assigned to: ${item.assigned}</label>
+                                </div>
+                            `).join('')}
+                        </div>`;
+                    break;
+                case 'maintenance':
+                    title = 'Bulk Mark Items for Maintenance';
+                    contentHTML = `
+                        <p>Select items to mark for maintenance:</p>
+                        <div style="max-height: 200px; overflow-y: auto; margin-top: 1rem;">
+                            ${districtItems.map(item => `
+                                <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                                    <input type="checkbox" id="bulk-item-${item.id}" value="${item.id}" style="margin-right: 0.5rem;">
+                                    <label for="bulk-item-${item.id}">${item.name} (${item.id})</label>
+                                </div>
+                            `).join('')}
+                        </div>`;
+                    break;
+            }
+            
+            modalTitle.textContent = title;
+            modalContent.innerHTML = contentHTML;
+            modal.style.display = 'flex';
+            modal.dataset.actionType = actionType;
+        }
+        
+        function handleBulkAction() {
+            const modal = document.getElementById('bulk-action-modal');
+            const actionType = modal.dataset.actionType;
+            const checkedItems = Array.from(modal.querySelectorAll('input[type="checkbox"]:checked'));
+            
+            if (checkedItems.length === 0) {
+                showNotification('Please select at least one item.');
+                return;
+            }
+            
+            const itemIds = checkedItems.map(item => item.value);
+            let inventory = getInventoryData();
+            let successCount = 0;
+            
+            switch(actionType) {
+                case 'assign':
+                    const collectorName = document.getElementById('bulk-collector-name').value.trim();
+                    if (!collectorName) {
+                        showNotification('Please enter a data collector name.');
+                        return;
+                    }
+                    
+                    itemIds.forEach(itemId => {
+                        const itemIndex = inventory.findIndex(i => i.id === itemId);
+                        if (itemIndex > -1) {
+                            inventory[itemIndex].status = 'in-use';
+                            inventory[itemIndex].assigned = collectorName;
+                            inventory[itemIndex].lastUpdate = new Date().toLocaleDateString();
+                            logMovement(itemId, 'assignment', `Assigned to ${collectorName}`);
+                            successCount++;
+                        }
+                    });
+                    
+                    showNotification(`Successfully assigned ${successCount} items to ${collectorName}.`);
+                    break;
+                case 'return':
+                    itemIds.forEach(itemId => {
+                        const itemIndex = inventory.findIndex(i => i.id === itemId);
+                        if (itemIndex > -1) {
+                            inventory[itemIndex].status = 'in-storage-field';
+                            inventory[itemIndex].assigned = '';
+                            inventory[itemIndex].lastUpdate = new Date().toLocaleDateString();
+                            logMovement(itemId, 'return_to_field_office', `Item returned from field to office storage in ${currentSupervisor.district}.`);
+                            successCount++;
+                        }
+                    });
+                    
+                    showNotification(`Successfully returned ${successCount} items to Field Office.`);
+                    break;
+                case 'transfer':
+                    const newCollector = document.getElementById('bulk-transfer-collector').value.trim();
+                    if (!newCollector) {
+                        showNotification('Please enter a data collector name.');
+                        return;
+                    }
+                    
+                    itemIds.forEach(itemId => {
+                        const itemIndex = inventory.findIndex(i => i.id === itemId);
+                        if (itemIndex > -1) {
+                            const originalAssignee = inventory[itemIndex].assigned;
+                            inventory[itemIndex].assigned = newCollector;
+                            inventory[itemIndex].lastUpdate = new Date().toLocaleDateString();
+                            logMovement(itemId, 'transfer', `Transferred from ${originalAssignee} to ${newCollector}`);
+                            successCount++;
+                        }
+                    });
+                    
+                    showNotification(`Successfully transferred ${successCount} items to ${newCollector}.`);
+                    break;
+                case 'maintenance':
+                    itemIds.forEach(itemId => {
+                        const itemIndex = inventory.findIndex(i => i.id === itemId);
+                        if (itemIndex > -1) {
+                            const oldStatus = inventory[itemIndex].status;
+                            inventory[itemIndex].status = 'maintenance';
+                            inventory[itemIndex].assigned = '';
+                            inventory[itemIndex].lastUpdate = new Date().toLocaleDateString();
+                            logMovement(itemId, 'status_change', `Status changed from ${oldStatus} to maintenance.`);
+                            successCount++;
+                        }
+                    });
+                    
+                    showNotification(`Successfully marked ${successCount} items for maintenance.`);
+                    break;
+            }
+            
+            saveInventoryData(inventory);
+            modal.style.display = 'none';
+            loadSupervisorData();
+            updateTransferHistory();
+        }
+        
+        function handleAcknowledge(itemId) {
+            if (confirm('Acknowledge receipt of this item? It will become available for assignment.')) {
+                handleStatusChange(itemId, 'available', 'Item acknowledged and made available.');
+            }
+        }
+        
+        function handleReturn(itemId) {
+            const allInventory = getInventoryData();
+            const item = allInventory.find(i => i.id === itemId);
+            if(confirm(`Are you sure you want to return "${item.name}" to the Field Office for storage?`)) {
+                 const itemIndex = allInventory.findIndex(i => i.id === itemId);
+                 if (itemIndex > -1) {
+                     allInventory[itemIndex].status = 'in-storage-field';
+                     allInventory[itemIndex].assigned = '';
+                     allInventory[itemIndex].lastUpdate = new Date().toLocaleDateString();
+                     
+                     saveInventoryData(allInventory);
+                     logMovement(itemId, 'return_to_field_office', `Item returned from field to office storage in ${currentSupervisor.district}.`);
+                     showNotification('Item successfully returned to Field Office.');
+                     loadSupervisorData();
+                     updateTransferHistory();
+                 }
+            }
+        }
+
+        function handleStatusChange(itemId, newStatus, logMessage = null) {
+            let inventory = getInventoryData();
+            const itemIndex = inventory.findIndex(i => i.id === itemId);
+            if (itemIndex > -1) {
+                const oldStatus = inventory[itemIndex].status;
+                inventory[itemIndex].status = newStatus;
+                inventory[itemIndex].lastUpdate = new Date().toLocaleDateString();
+                
+                if (newStatus === 'available') {
+                    inventory[itemIndex].assigned = ''; // Clear assignment if it becomes available
+                }
+                
+                saveInventoryData(inventory);
+                
+                logMovement(itemId, 'status_change', logMessage || `Status changed from ${oldStatus} to ${newStatus}.`);
+                showNotification(`Item status updated to ${newStatus}.`);
+                loadSupervisorData();
+                updateTransferHistory();
+            }
+        }
+
+        function openAssignModal(itemId, type = 'assign') {
+            const inventory = getInventoryData();
+            const item = inventory.find(i => i.id === itemId);
+            const modal = document.getElementById('assign-modal');
+
+            if (item) {
+                document.getElementById('assign-modal-title').textContent = type === 'assign' ? 'Assign Item' : 'Transfer Item';
+                document.getElementById('assign-item-name').textContent = `${item.name} (${item.id})`;
+                document.getElementById('assign-item-id').value = item.id;
+                document.getElementById('collector-name').value = type === 'transfer' ? item.assigned : '';
+                document.getElementById('collector-name').placeholder = type === 'assign' ? 'Enter new data collector name' : 'Enter name to transfer to';
+                
+                modal.style.display = 'flex';
+                document.getElementById('collector-name').focus();
+            }
+        }
+        
+        function openIncidentModal() {
+            if (!currentSupervisor) {
+                showNotification('Please select a supervisor first.');
+                return;
+            }
+
+            const modal = document.getElementById('incident-modal');
+            const itemSelect = document.getElementById('incident-item-select');
+            const inventory = getInventoryData();
+            
+            // Items must be in the supervisor's district and currently 'in-use' to be reported.
+            const reportableItems = inventory.filter(item => 
+                item.district && item.district.toLowerCase() === currentSupervisor.district.toLowerCase() &&
+                item.status === 'in-use'
+            );
+            
+            itemSelect.innerHTML = '<option value="">-- Select an Item --</option>';
+
+            if (reportableItems.length === 0) {
+                showNotification('No items are currently assigned to data collectors to report.');
+                return;
+            }
+
+            reportableItems.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = `${item.name} (${item.id}) - Assigned to: ${item.assigned}`;
+                itemSelect.appendChild(option);
+            });
+            
+            document.getElementById('incident-form').reset();
+            document.getElementById('incident-date').valueAsDate = new Date();
+            modal.style.display = 'flex';
+        }
+
+        function handleIncidentReport(e) {
+            e.preventDefault();
+            const itemId = document.getElementById('incident-item-select').value;
+            const incidentType = document.getElementById('incident-type').value;
+            const incidentDate = document.getElementById('incident-date').value;
+            const incidentDetails = document.getElementById('incident-details').value.trim();
+            const attachment = document.getElementById('incident-attachment').files[0];
+
+            if (!itemId || !incidentType || !incidentDate || !incidentDetails) {
+                showNotification('Please fill all required fields.', 'error');
+                return;
+            }
+
+            let inventory = getInventoryData();
+            const itemIndex = inventory.findIndex(i => i.id === itemId);
+
+            if (itemIndex > -1) {
+                const originalAssignee = inventory[itemIndex].assigned;
+                inventory[itemIndex].status = 'reported-missing';
+                inventory[itemIndex].assigned = ''; // Unassign the item
+                inventory[itemIndex].lastUpdate = new Date().toLocaleDateString();
+                
+                saveInventoryData(inventory);
+                
+                const logDetail = `Incident Reported: ${incidentType}. Date: ${incidentDate}. Details: ${incidentDetails}. Originally assigned to: ${originalAssignee}. ${attachment ? `Attachment: ${attachment.name}` : ''}`;
+                logMovement(itemId, 'incident_report', logDetail);
+                
+                showNotification('Incident report submitted successfully.');
+                document.getElementById('incident-modal').style.display = 'none';
+                loadSupervisorData();
+                updateTransferHistory();
+            }
+        }
+
+
+        function showNotification(message) {
+            const toast = document.getElementById('notification-toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+</html>

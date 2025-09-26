@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RTV Inventory Hub | Field Office</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            --sidebar-width: 260px;
+            --header-height: 70px;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f1f5f9;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--dark);
+            color: white;
+            height: 100vh;
+            position: fixed;
+            overflow-y: auto;
+            transition: var(--transition);
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .sidebar-logo {
+            height: 40px;
+            width: 40px;
+            object-fit: contain;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .sidebar-menu {
+            padding: 1rem 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: var(--transition);
+            gap: 0.75rem;
+        }
+
+        .menu-item:hover, .menu-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 1.5rem;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .header-title h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .header-title p {
+            color: var(--secondary);
+            font-size: 0.9rem;
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: var(--secondary);
+            font-weight: 500;
+        }
+
+        /* Table Styles */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .inventory-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .inventory-table thead th {
+            text-align: left;
+            padding: 1.25rem;
+            background: var(--light);
+            color: var(--secondary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .inventory-table tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background-color 0.2s ease;
+        }
+
+        .inventory-table tbody tr:last-child {
+            border-bottom: none;
+        }
+        
+        .inventory-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+        
+        .inventory-table td {
+            padding: 1rem 1.25rem;
+            vertical-align: middle;
+            font-size: 0.9rem;
+            color: #475569;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.35em 0.65em;
+            font-size: 0.75em;
+            font-weight: 600;
+            line-height: 1;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: baseline;
+            border-radius: 0.375rem;
+        }
+        
+        .status-available { color: #065f46; background-color: #d1fae5; }
+        .status-in-use { color: #1e40af; background-color: #dbeafe; }
+        .status-maintenance { color: #92400e; background-color: #fef3c7; }
+        .status-retired { color: #991b1b; background-color: #fee2e2; }
+        .status-pending-transfer { color: #9a3412; background-color: #ffedd5; }
+        .status-in-storage-field { color: #5b21b6; background-color: #ede9fe; } /* New Status */
+
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .action-buttons .btn {
+            font-size: 0.8rem;
+            padding: 0.5rem 0.8rem;
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #0da271; }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-warning:hover { background: #d97706; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--secondary); }
+        .btn-outline:hover { background: var(--light); }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            width: 90%;
+            max-width: 700px;
+            position: relative;
+        }
+        
+        .modal-content h3 { margin-bottom: 1.5rem; color: var(--dark); }
+        .modal-close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; position: absolute; top: 1rem; right: 1.5rem; }
+        .modal-close:hover, .modal-close:focus { color: #000; text-decoration: none; cursor: pointer; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--dark); }
+        .form-control { width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; }
+        .form-control:focus { outline: none; border-color: var(--primary); }
+        .modal-footer { margin-top: 1.5rem; text-align: right; }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #333;
+            color: white;
+            padding: 15px 25px;
+            border-radius: var(--border-radius);
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+            font-size: 0.9rem;
+        }
+        
+        .notification.show { opacity: 1; visibility: visible; }
+        
+        .selector-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .selector-container label {
+            font-weight: 500;
+            color: var(--dark);
+        }
+        
+        .selector-container select {
+            padding: 0.5rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: white;
+        }
+        
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .quick-action-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 150px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .quick-action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+        
+        .quick-action-btn i {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .quick-action-btn span {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--dark);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="logo.png" alt="RTV Inventory Hub Logo" class="sidebar-logo">
+                <h2>RTV Inventory Hub</h2>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="index.html" class="menu-item">
+                    <i class="fas fa-home"></i>
+                    <span class="menu-text">Dashboard</span>
+                </a>
+                <a href="Inventory.html" class="menu-item">
+                    <i class="fas fa-list"></i>
+                    <span class="menu-text">Inventory</span>
+                </a>
+                <a href="supervisor.html" class="menu-item">
+                    <i class="fas fa-user-shield"></i>
+                    <span class="menu-text">Supervisor</span>
+                </a>
+                <a href="field_office.html" class="menu-item active">
+                    <i class="fas fa-warehouse"></i>
+                    <span class="menu-text">Field Office</span>
+                </a>
+                <a href="transfers.html" class="menu-item">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span class="menu-text">Transfers</span>
+                </a>
+                <a href="reports.html" class="menu-item">
+                    <i class="fas fa-chart-bar"></i>
+                    <span class="menu-text">Reports</span>
+                </a>
+                <a href="settings.html" class="menu-item">
+                    <i class="fas fa-cog"></i>
+                    <span class="menu-text">Settings</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <div class="header-title">
+                    <h1>Field Office Dashboard (<span id="district-name"></span>)</h1>
+                    <p>Manage items returned from the field before sending to the central store.</p>
+                </div>
+                <div class="user-profile">
+                    <div class="avatar" id="manager-avatar">F</div>
+                    <div>
+                        <div id="manager-name">Field Manager</div>
+                        <small>District Officer</small>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="selector-container">
+                <label for="district-select">Select Field Office (District):</label>
+                <select id="district-select">
+                    <option value="">-- Select District --</option>
+                </select>
+            </div>
+            
+            <div class="quick-actions">
+                <div class="quick-action-btn" id="receive-items-btn">
+                    <i class="fas fa-download"></i>
+                    <span>Receive Items from Field</span>
+                </div>
+                <div class="quick-action-btn" id="return-to-admin-btn">
+                    <i class="fas fa-upload"></i>
+                    <span>Bulk Return to Admin</span>
+                </div>
+            </div>
+            
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="stat-value" id="total-district-items">0</div>
+                        <div class="stat-label">Total Items in District</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="stat-value" id="items-with-supervisors">0</div>
+                        <div class="stat-label">Items with Supervisors</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="stat-value" id="items-in-storage">0</div>
+                        <div class="stat-label">Items in Field Storage</div>
+                    </div>
+                </div>
+                 <div class="card">
+                    <div class="card-body">
+                        <div class="stat-value" id="items-in-maintenance">0</div>
+                        <div class="stat-label">Items Needing Maintenance</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Assigned To</th>
+                            <th>Last Update</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventory-table-body">
+                    </tbody>
+                </table>
+            </div>
+            
+        </main>
+    </div>
+    
+    <div id="bulk-action-modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h3 id="bulk-modal-title">Bulk Action</h3>
+            <div id="bulk-modal-content"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline modal-close">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirm-bulk-action">Confirm</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="notification-toast" class="notification"></div>
+
+    <script>
+        let currentDistrict = null;
+        
+        const INVENTORY_KEY = 'inventoryData';
+        const DISTRICTS_KEY = 'districts';
+        const MOVEMENT_LOGS_KEY = 'movementLogs';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeFieldOfficeDashboard();
+        });
+        
+        window.addEventListener('storage', (e) => {
+            if (e.key === INVENTORY_KEY || e.key === DISTRICTS_KEY) {
+                loadFieldOfficeData();
+            }
+        });
+
+        function initializeFieldOfficeDashboard() {
+            loadDistrictDropdown();
+            setupEventListeners();
+            
+            const lastDistrict = localStorage.getItem('lastSelectedFieldOffice');
+            if (lastDistrict) {
+                document.getElementById('district-select').value = lastDistrict;
+                setCurrentDistrict(lastDistrict);
+            }
+        }
+        
+        // --- Data Access Functions ---
+        const getInventoryData = () => JSON.parse(localStorage.getItem(INVENTORY_KEY)) || [];
+        const getDistricts = () => JSON.parse(localStorage.getItem(DISTRICTS_KEY)) || [];
+        const saveInventoryData = (inventory) => {
+            localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory));
+            window.dispatchEvent(new Event('storage'));
+        };
+        
+        function logMovement(itemId, action, details) {
+            let movementLogs = JSON.parse(localStorage.getItem(MOVEMENT_LOGS_KEY)) || [];
+            movementLogs.unshift({
+                itemId,
+                action,
+                details: `${details} (Action by Field Office: ${currentDistrict})`,
+                timestamp: new Date().toISOString()
+            });
+            localStorage.setItem(MOVEMENT_LOGS_KEY, JSON.stringify(movementLogs));
+        }
+
+        function loadDistrictDropdown() {
+            const districts = getDistricts();
+            const dropdown = document.getElementById('district-select');
+            
+            dropdown.innerHTML = '<option value="">-- Select District --</option>';
+            
+            districts.sort().forEach(district => {
+                if (district.toLowerCase() !== 'mbarara') { // Field offices are not the central store
+                    const option = document.createElement('option');
+                    option.value = district.toLowerCase();
+                    option.textContent = district;
+                    dropdown.appendChild(option);
+                }
+            });
+        }
+        
+        function setCurrentDistrict(district) {
+            if (!district) {
+                currentDistrict = null;
+                return;
+            }
+            currentDistrict = district;
+            
+            localStorage.setItem('lastSelectedFieldOffice', district);
+            const formattedName = district.charAt(0).toUpperCase() + district.slice(1);
+            document.getElementById('district-name').textContent = formattedName;
+            document.getElementById('manager-avatar').textContent = formattedName.charAt(0);
+            
+            loadFieldOfficeData();
+        }
+        
+        function loadFieldOfficeData() {
+            if (!currentDistrict) {
+                document.getElementById('inventory-table-body').innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem;">Please select a field office.</td></tr>';
+                return;
+            };
+            
+            const allInventory = getInventoryData();
+            const districtInventory = allInventory.filter(item => item.district && item.district.toLowerCase() === currentDistrict);
+            
+            updateStats(districtInventory);
+            renderTable(districtInventory);
+        }
+
+        function updateStats(districtInventory) {
+            document.getElementById('total-district-items').textContent = districtInventory.length;
+            document.getElementById('items-with-supervisors').textContent = districtInventory.filter(item => ['in-use', 'available'].includes(item.status)).length;
+            document.getElementById('items-in-storage').textContent = districtInventory.filter(item => item.status === 'in-storage-field').length;
+            document.getElementById('items-in-maintenance').textContent = districtInventory.filter(item => item.status === 'maintenance').length;
+        }
+
+        function renderTable(items) {
+            const tableBody = document.getElementById('inventory-table-body');
+            tableBody.innerHTML = '';
+
+            if (items.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem;">No items found in this district.</td></tr>';
+                return;
+            }
+            
+            items.sort((a, b) => a.id.localeCompare(b.id));
+            
+            items.forEach(item => {
+                const row = document.createElement('tr');
+                let statusClass = `status-${item.status.replace(/_/g, '-')}`;
+
+                row.innerHTML = `
+                    <td>${item.id}</td>
+                    <td>${item.name}</td>
+                    <td>${item.type}</td>
+                    <td><span class="status-badge ${statusClass}">${item.status.replace(/-/g, ' ').toUpperCase()}</span></td>
+                    <td>${item.assigned || 'N/A'}</td>
+                    <td>${item.lastUpdate}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        function setupEventListeners() {
+            document.getElementById('district-select').addEventListener('change', (e) => {
+                setCurrentDistrict(e.target.value);
+            });
+            
+            document.getElementById('receive-items-btn').addEventListener('click', () => openBulkActionModal('receive'));
+            document.getElementById('return-to-admin-btn').addEventListener('click', () => openBulkActionModal('return_to_admin'));
+
+            document.querySelectorAll('.modal-close').forEach(btn => {
+                btn.addEventListener('click', () => btn.closest('.modal').style.display = 'none');
+            });
+            
+            window.addEventListener('click', e => {
+                if(e.target.classList.contains('modal')) e.target.style.display = 'none';
+            });
+            
+            document.getElementById('confirm-bulk-action').addEventListener('click', handleBulkAction);
+        }
+        
+        function openBulkActionModal(actionType) {
+            if (!currentDistrict) {
+                showNotification('Please select a field office first.');
+                return;
+            }
+            
+            const modal = document.getElementById('bulk-action-modal');
+            const modalTitle = document.getElementById('bulk-modal-title');
+            const modalContent = document.getElementById('bulk-modal-content');
+            
+            const inventory = getInventoryData();
+            let itemsForAction = [];
+            
+            if (actionType === 'receive') {
+                itemsForAction = inventory.filter(item => 
+                    item.district && item.district.toLowerCase() === currentDistrict && 
+                    ['in-use', 'available'].includes(item.status)
+                );
+            } else if (actionType === 'return_to_admin') {
+                itemsForAction = inventory.filter(item => 
+                    item.district && item.district.toLowerCase() === currentDistrict && 
+                    item.status === 'in-storage-field'
+                );
+            }
+            
+            if (itemsForAction.length === 0) {
+                showNotification(`No items available for this action.`);
+                return;
+            }
+            
+            let title = '';
+            let contentHTML = '';
+            
+            switch(actionType) {
+                case 'receive':
+                    title = 'Receive Items into Field Storage';
+                    contentHTML = `<p>Select items that have been returned by supervisors and are now in your possession.</p>`;
+                    break;
+                case 'return_to_admin':
+                    title = 'Bulk Return Items to Admin';
+                    contentHTML = `<p>Select items to return to the Mbarara central store. This will transfer them out of your district's inventory.</p>`;
+                    break;
+            }
+
+            contentHTML += `
+                <div style="max-height: 300px; overflow-y: auto; margin-top: 1rem; border: 1px solid var(--border); padding: 0.5rem; border-radius: 8px;">
+                    ${itemsForAction.map(item => `
+                        <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                            <input type="checkbox" id="bulk-item-${item.id}" value="${item.id}" style="margin-right: 0.5rem;">
+                            <label for="bulk-item-${item.id}">${item.name} (${item.id}) - <i>Assigned to: ${item.assigned || 'Supervisor Stock'}</i></label>
+                        </div>
+                    `).join('')}
+                </div>`;
+            
+            modalTitle.textContent = title;
+            modalContent.innerHTML = contentHTML;
+            modal.style.display = 'flex';
+            modal.dataset.actionType = actionType;
+        }
+        
+        function handleBulkAction() {
+            const modal = document.getElementById('bulk-action-modal');
+            const actionType = modal.dataset.actionType;
+            const checkedItems = Array.from(modal.querySelectorAll('input[type="checkbox"]:checked'));
+            
+            if (checkedItems.length === 0) {
+                showNotification('Please select at least one item.');
+                return;
+            }
+            
+            const itemIds = checkedItems.map(item => item.value);
+            let inventory = getInventoryData();
+            let successCount = 0;
+            
+            switch(actionType) {
+                case 'receive':
+                    itemIds.forEach(itemId => {
+                        const itemIndex = inventory.findIndex(i => i.id === itemId);
+                        if (itemIndex > -1) {
+                            inventory[itemIndex].status = 'in-storage-field';
+                            inventory[itemIndex].assigned = ''; // Unassign from collector/supervisor
+                            inventory[itemIndex].lastUpdate = new Date().toLocaleDateString();
+                            logMovement(itemId, 'received_at_field_office', `Item moved into field storage.`);
+                            successCount++;
+                        }
+                    });
+                    showNotification(`Successfully moved ${successCount} items into field storage.`);
+                    break;
+
+                case 'return_to_admin':
+                    itemIds.forEach(itemId => {
+                        const itemIndex = inventory.findIndex(i => i.id === itemId);
+                        if (itemIndex > -1) {
+                            inventory[itemIndex].district = 'mbarara';
+                            inventory[itemIndex].status = 'available';
+                            inventory[itemIndex].assigned = '';
+                            inventory[itemIndex].lastUpdate = new Date().toLocaleDateString();
+                            logMovement(itemId, 'return_to_store', `Item returned from ${currentDistrict} field office to Mbarara store.`);
+                            successCount++;
+                        }
+                    });
+                    showNotification(`Successfully initiated return for ${successCount} items to the admin store.`);
+                    break;
+            }
+            
+            saveInventoryData(inventory);
+            modal.style.display = 'none';
+            loadFieldOfficeData();
+        }
+
+        function showNotification(message) {
+            const toast = document.getElementById('notification-toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+</html>
